@@ -24,7 +24,21 @@ class CIFAR10Dataset:
         X_test = X_test.astype('float32')
         X_test /= 255
         Y_test = np_utils.to_categorical(y_test, self.num_classes)
+        del X_train, y_train
         return X_test, Y_test
+
+    def get_val_dataset(self):
+        (X_train, y_train), (X_test, y_test) = cifar10.load_data()
+        val_size = 5000
+        X_val = X_train[:val_size]
+        X_val = X_val.reshape(X_val.shape[0], self.image_size, self.image_size, self.num_channels)
+        X_val = X_val.astype('float32') / 255
+        y_val = y_train[:val_size]
+        Y_val = np_utils.to_categorical(y_val, self.num_classes)
+        del X_train, y_train, X_test, y_test
+
+        return X_val, Y_val
+
 
     def load_model_by_name(self, model_name, logits=False, input_range_type=1, pre_filter=lambda x:x):
         """
@@ -36,7 +50,7 @@ class CIFAR10Dataset:
         self.model_name = model_name
 
         model_weights_fpath = "%s_%s.keras_weights.h5" % (self.dataset_name, model_name)
-        model_weights_fpath = os.path.join('models/trained_weights', model_weights_fpath)
+        model_weights_fpath = os.path.join('downloads/trained_models', model_weights_fpath)
 
         if model_name in ["cleverhans", 'cleverhans_adv_trained']:
             model = cleverhans_cifar10_model(logits=logits, input_range_type=input_range_type, pre_filter=pre_filter)
